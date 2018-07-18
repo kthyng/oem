@@ -5,6 +5,7 @@ import tracpy
 import xarray as xr
 import cmocean.cm as cmo
 import pandas as pd
+import scipy.ndimage
 
 loc = 'http://terrebonne.tamu.edu:8080/thredds/dodsC/NcML/gom_roms_hycom'
 ds = xr.open_dataset(loc)
