@@ -18,7 +18,7 @@ vec = np.ones((5,*grid.x_psi[1:-1,1:-1].shape))
 
 # set up dataframe
 index = pd.date_range(start=ds['ocean_time'][0].values, end=ds['ocean_time'][-1].values, freq='3H')
-df = pd.DataFrame(index=index, dtype=object, columns=['Points'])
+df = pd.DataFrame(index=index, dtype=object, columns=['x','y'])
 
 for i in range(ds['ocean_time'].size):
     v = ds['v'][i].data  # v grid
@@ -75,11 +75,12 @@ for i in range(ds['ocean_time'].size):
     # also remove if outside a generous north GOM box
     # must be north of 24 and west of 84
     # inner psi grid
-    vec[ii][grid.lon_psi[1:-1,1:-1] > -84] = 1  # remove pts east of 84W
+    # vec[ii][grid.lon_psi[1:-1,1:-1] > -84] = 1  # remove pts east of 84W
+    vec[ii][grid.lon_psi[1:-1,1:-1] > -81] = 1  # remove pts east of 84W
 
-    # remove points south of 24 N
-    # inner psi grid
-    vec[ii][grid.lat_psi[1:-1,1:-1] < 24] = 1
+    # # remove points south of 24 N
+    # # inner psi grid
+    # vec[ii][grid.lat_psi[1:-1,1:-1] < 24] = 1
 
     # izeros is on inner psi grid
     izeros = np.where(vec[ii]==0)
@@ -198,8 +199,8 @@ for i in range(ds['ocean_time'].size):
         # only keep cyclone size range cyclones
         paths = cs.collections[0].get_paths()
 
-        psave = []  # to store accepted polygon coordinate tuples
-
+        xsave = []  # to store accepted polygon coordinates
+        ysave = []
         for path in paths:
         # path = paths[0]
             try:
@@ -238,12 +239,15 @@ for i in range(ds['ocean_time'].size):
             # ok: 0, 3
             #
 
-            # save whatever polygon points make it to this point
             # reduce number of points used to define polygon
-            psave.append(p.simplify(10000).exterior.xy)
+            p = p.simplify(10000)
+            # save whatever polygon points make it to this point
+            xsave.append(list(p.exterior.xy[0]))
+            ysave.append(list(p.exterior.xy[1]))
 
         # put into dataframe at corresponding time
-        df.loc[pd.Timestamp(ds['ocean_time'][i].values),'Points'] = psave
+        df.loc[pd.Timestamp(ds['ocean_time'][i].values),'x'] = xsave
+        df.loc[pd.Timestamp(ds['ocean_time'][i].values),'y'] = ysave
         df.to_csv('points.csv')
 
     # figure()
