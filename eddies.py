@@ -192,7 +192,7 @@ for i in range(ds['ocean_time'].size):
         vec = np.roll(vec, -1, axis=0)
 
         # collect contours
-        cs = contour(grid.x_psi[1:-1,1:-1], grid.y_psi[1:-1,1:-1], vecsum, [0])
+        cs = plt.contour(grid.x_psi[1:-1,1:-1], grid.y_psi[1:-1,1:-1], vecsum, [0])
         plt.close(plt.gcf())
 
         # only keep cyclone size range cyclones
