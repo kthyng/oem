@@ -20,7 +20,7 @@ vec = np.ones((5,*grid.x_psi[1:-1,1:-1].shape))
 index = pd.date_range(start=ds['ocean_time'][0].values, end=ds['ocean_time'][-1].values, freq='3H')
 df = pd.DataFrame(index=index, dtype=object, columns=['Points'])
 
-for i in range(len(ds)):
+for i in range(ds['ocean_time'].size):
     v = ds['v'][i].data  # v grid
     u = ds['u'][i].data  # u grid
     up = tracpy.op.resize(u, 0)  # psi grid
