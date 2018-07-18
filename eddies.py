@@ -8,7 +8,7 @@ import pandas as pd
 
 loc = 'http://terrebonne.tamu.edu:8080/thredds/dodsC/NcML/gom_roms_hycom'
 ds = xr.open_dataset(loc)
-grid_file = '../experiments/gom03_grd_N050_new.nc'
+grid_file = 'gom03_grd_N050_new.nc'
 proj = tracpy.tools.make_proj('nwgom-pyproj')
 grid = tracpy.inout.readgrid(grid_file, proj=proj)
 
