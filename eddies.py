@@ -213,7 +213,8 @@ for i in range(ds['ocean_time'].size):
             R = np.sqrt(p.area/1000**2/np.pi)
 
             # radius should be right size to be an eddy (30-140km?)
-            if not (R>30) and (R<140):
+            # if not ((R>30) and (R<140)):
+            if R < 30 or R > 140:
                 continue
 
             # nearest distance between centroid and exterior of polygon (km)
@@ -221,7 +222,8 @@ for i in range(ds['ocean_time'].size):
 
             # ratio of radius and centroid to boundary distance should be around 1
             ratio = R/D
-            if not (ratio > 0.1) and (ratio < 2):
+            # if not ((ratio > 0.1) and (ratio < 2)):
+            if ratio < 0.1 or ratio > 2:
                 continue
             #
             # skewed: 0.07 , 3.5
