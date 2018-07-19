@@ -191,7 +191,7 @@ for i in range(ds['ocean_time'].size):
     if i>4:
         # add across time steps and only save when always 0
         vecsum = np.ones(vec[0].shape)
-        vecsum[vec.sum(axis=0) == 0] = 0
+        vecsum[vec.sum(axis=0) <= 1] = 0
         # roll vec forward so can stick in next loop's vec entry to final time location
         vec = np.roll(vec, -1, axis=0)
 
@@ -217,14 +217,21 @@ for i in range(ds['ocean_time'].size):
 
             # radius should be right size to be an eddy (30-140km?)
             # if not ((R>30) and (R<140)):
-            if R < 65 or R > 200:
+            if R < 65 or R > 250:
                 continue
 
-            # nearest distance between centroid and exterior of polygon (km)
-            D = p.exterior.distance(p.centroid)/1000
+            # # this removes weird shapes
+            # # nearest distance between centroid and exterior of polygon (km)
+            # D = p.exterior.distance(p.centroid)/1000
+
+            # Compare aspect ratio of bounds
+            W = abs(p.bounds[0] - p.bounds[2])
+            H = abs(p.bounds[1] - p.bounds[3])
 
             # ratio of radius and centroid to boundary distance should be around 1
-            ratio = R/D
+            # ratio = R/D
+            # calculate aspect ratio of bounds
+            ratio = W/H
             # if not ((ratio > 0.1) and (ratio < 2)):
             if ratio < 0.1 or ratio > 2.7:
                 continue
