@@ -21,6 +21,7 @@ index = pd.date_range(start=ds['ocean_time'][0].values, end=ds['ocean_time'][-1]
 df = pd.DataFrame(index=index, dtype=object, columns=['x','y'])
 
 for i in range(ds['ocean_time'].size):
+    # i=1
     v = ds['v'][i].data  # v grid
     u = ds['u'][i].data  # u grid
     up = tracpy.op.resize(u, 0)  # psi grid
@@ -81,6 +82,8 @@ for i in range(ds['ocean_time'].size):
     # # remove points south of 24 N
     # # inner psi grid
     # vec[ii][grid.lat_psi[1:-1,1:-1] < 24] = 1
+    # can't be too close to bottom
+    vec[ii][grid.lat_psi[1:-1,1:-1] < 18.5] = 1
 
     # izeros is on inner psi grid
     izeros = np.where(vec[ii]==0)
@@ -182,7 +185,7 @@ for i in range(ds['ocean_time'].size):
         # update value of newzeros with number of new points
         nnewzeros = inewzeros[0].size
 
-        strength[vec[ii] == 0] += strength0[vec[ii] == 0]
+        # strength[vec[ii] == 0] += strength0[vec[ii] == 0]
 
     # sum over 5 time steps (15 hours)
     if i>4:
@@ -214,7 +217,7 @@ for i in range(ds['ocean_time'].size):
 
             # radius should be right size to be an eddy (30-140km?)
             # if not ((R>30) and (R<140)):
-            if R < 30 or R > 140:
+            if R < 65 or R > 200:
                 continue
 
             # nearest distance between centroid and exterior of polygon (km)
@@ -223,7 +226,7 @@ for i in range(ds['ocean_time'].size):
             # ratio of radius and centroid to boundary distance should be around 1
             ratio = R/D
             # if not ((ratio > 0.1) and (ratio < 2)):
-            if ratio < 0.1 or ratio > 2:
+            if ratio < 0.1 or ratio > 2.7:
                 continue
             #
             # skewed: 0.07 , 3.5
@@ -231,11 +234,11 @@ for i in range(ds['ocean_time'].size):
 
             # see if second to last pt is near last pt to see if
             # boundary was closed by shapely (km)
-            x, y = p.exterior.xy
-            p1 = shapely.geometry.Point(x[-1], y[-1])
-            p2 = shapely.geometry.Point(x[-2], y[-2])
-            if p1.distance(p2)/1000 > 20:
-                continue
+            # x, y = p.exterior.xy
+            # p1 = shapely.geometry.Point(x[-1], y[-1])
+            # p2 = shapely.geometry.Point(x[-2], y[-2])
+            # if p1.distance(p2)/1000 > 20:
+            #     continue
             #
             # too high: 150, 260, 32?
             # ok: 0, 3
@@ -251,6 +254,17 @@ for i in range(ds['ocean_time'].size):
         df.loc[pd.Timestamp(ds['ocean_time'][i].values),'x'] = xsave
         df.loc[pd.Timestamp(ds['ocean_time'][i].values),'y'] = ysave
         df.to_csv('points.csv')
+
+
+# plt.figure()
+# plt.quiver(grid.lon_psi[1:-1,1:-1][::10,::10],
+#        grid.lat_psi[1:-1,1:-1][::10,::10],
+#        up[1:-1,1:-1][::10,::10],
+#        vp[1:-1,1:-1][::10,::10])
+# x, y = p.exterior.xy
+# lon, lat = proj(x, y, inverse=True)
+# plt.plot(lon, lat, color='darkcyan', lw=2)
+
 
     # figure()
     # pcolormesh(grid.lon_rho[1:-1,1:-1],
