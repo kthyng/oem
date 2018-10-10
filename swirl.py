@@ -47,8 +47,8 @@ if whichmodel == 'mercator':
     sshmax = 0.5; sshmin = -sshmax
     dt = 1  # use every time output
     # for setting up final dataframe and selecting times
-    dates = pd.to_datetime(ds['time'].values)
-    dfdates = pd.DataFrame(index=dates)
+    # dates = pd.to_datetime(ds['time'].values)
+    # dfdates = pd.DataFrame(index=dates)
 elif whichmodel == 'hycom':
     loc = 'http://terrebonne.tamu.edu:8080/thredds/dodsC/NcML/gom_roms_hycom'
     ds = xr.open_dataset(loc)
@@ -84,8 +84,8 @@ elif whichmodel == 'hycom':
     # assign ocean_time to coordinate
     ds = ds.assign_coords(ocean_time=ds['ocean_time'])
     # for setting up final dataframe and selecting times
-    dates = pd.to_datetime(ds['ocean_time'].values)
-    dfdates = pd.DataFrame(index=dates)
+    # dates = pd.to_datetime(ds['ocean_time'].values)
+    # dfdates = pd.DataFrame(index=dates)
 
 def dofilter(up, vp, size=3):
     # filter velocities a little
@@ -161,8 +161,8 @@ ptsname += '/points.csv'
 
 # index = pd.date_range(start=dfdates[str(year)].index[0],
 #                       end=dfdates[str(year)].index[-1], freq=dtname)
-# df = pd.DataFrame(index=index, dtype=object, columns=['x','y'])
-df = pd.DataFrame()
+df = pd.DataFrame(dtype=object, columns=['x','y'])
+# df = pd.DataFrame(dtype=object, columns=['p'])
 
 
 # plot
@@ -337,8 +337,9 @@ for i in range(0,t.size, dt):
     # has to have enough points to be big enough
     paths2 = [path for path in paths if path.vertices.size>90]
 
-    # xsave = []  # to store accepted polygon coordinates
-    # ysave = []
+    xsave = []  # to store accepted polygon coordinates
+    ysave = []
+    # psave = []
     paths3 = []
     for path in paths2:
     # path = paths[0]
@@ -421,14 +422,15 @@ for i in range(0,t.size, dt):
 
         # reduce number of points used to define polygon
         p = p.simplify(10000)
-        # # save whatever polygon points make it to this point
-        # xsave.append(list(p.exterior.xy[0]))
-        # ysave.append(list(p.exterior.xy[1]))
+        # save whatever polygon points make it to this point
+        xsave.append(list(p.exterior.xy[0]))
+        ysave.append(list(p.exterior.xy[1]))
+        # psave.append(p)
 
     # put into dataframe at corresponding time
-    df.loc[pd.Timestamp(ds['ocean_time'][i].values),'p'] = p
-    # df.loc[pd.Timestamp(ds['ocean_time'][i].values),'x'] = xsave
-    # df.loc[pd.Timestamp(ds['ocean_time'][i].values),'y'] = ysave
+    # df.loc[pd.Timestamp(ds['ocean_time'][i].values),'p'] = psave
+    df.loc[pd.Timestamp(ds['ocean_time'][i].values),'x'] = xsave
+    df.loc[pd.Timestamp(ds['ocean_time'][i].values),'y'] = ysave
     df.to_csv(ptsname)
 
 
