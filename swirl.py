@@ -15,11 +15,13 @@ from pyproj import Proj
 from tracpy import op
 import scipy.ndimage
 
-whichmodel = 'hycom'  # 'mercator'  # 'hycom'
+whichmodel = 'mercator'  # 'mercator'  # 'hycom'
 
-plotdrifters = False
+plotdrifters = True
 spacefilter = False
 timeaverage = False
+showmoredays = False
+savepts = False
 
 # year = 2002
 
@@ -140,6 +142,8 @@ aed = cartopy.crs.AzimuthalEquidistant(central_longitude=-90.0, central_latitude
 base = 'figures/swirl/%s' % whichmodel
 if plotdrifters:
     base += '/drifters'
+if showmoredays:
+    base += '/savemoredays'
 if spacefilter:
     base += '/spacefilter_size%i' % filtersize
 if timeaverage:
@@ -166,7 +170,9 @@ df = pd.DataFrame(dtype=object, columns=['x','y'])
 
 
 # plot
-pathssave = []  # save paths over multiple days
+if showmoredays:  # to plot more than one day id on a snapshot
+    pathssave = []  # save paths over multiple days
+
 for i in range(0,t.size, dt):
 # i = 7
 
@@ -429,27 +435,44 @@ for i in range(0,t.size, dt):
 
     # put into dataframe at corresponding time
     # df.loc[pd.Timestamp(ds['ocean_time'][i].values),'p'] = psave
-    df.loc[pd.Timestamp(ds['ocean_time'][i].values),'x'] = xsave
-    df.loc[pd.Timestamp(ds['ocean_time'][i].values),'y'] = ysave
-    df.to_csv(ptsname)
+    if whichmodel == 'hycom':
+        df.loc[pd.Timestamp(ds['ocean_time'][i].values),'x'] = xsave
+        df.loc[pd.Timestamp(ds['ocean_time'][i].values),'y'] = ysave
+    else:
+        df.loc[pd.Timestamp(ds['time'][i].values),'x'] = xsave
+        df.loc[pd.Timestamp(ds['time'][i].values),'y'] = ysave
+    if savepts:
+        df.to_csv(ptsname)
 
 
     # add paths3 to pathssave now
-    pathssave.insert(0, paths3)
-    # if we have more than 7 days' worth, remove oldest one
-    if len(pathssave) > 7:
-        pathssave.pop(-1)
-    alphas = np.linspace(1, 0.2, 7)
+    if showmoredays:  # to plot more than one day id on a snapshot
+        pathssave.insert(0, paths3)
+        # if we have more than 7 days' worth, remove oldest one
+        if len(pathssave) > 7:
+            pathssave.pop(-1)
+        alphas = np.linspace(1, 0.2, 7)
 
-    # add eddy identifications to plot
-    for paths3, alpha in zip(pathssave, alphas):  # loop over days of paths
-        for path in paths3:  # loop over paths for a single day
+        # add eddy identifications to plot
+        for paths3, alpha in zip(pathssave, alphas):  # loop over days of paths
+            for path in paths3:  # loop over paths for a single day
+                if not isinstance(path, shapely.geometry.polygon.Polygon):
+                    p = shapely.geometry.Polygon(path.vertices)
+                else:
+                    p = path
+                ax.add_geometries([p.convex_hull], crs=aed, facecolor='none',
+                                  edgecolor='k', linewidth=3, alpha=alpha)
+
+    else:
+        for path in paths3:
+
             if not isinstance(path, shapely.geometry.polygon.Polygon):
                 p = shapely.geometry.Polygon(path.vertices)
-            else:
+            else:  # is already a polygon
                 p = path
             ax.add_geometries([p.convex_hull], crs=aed, facecolor='none',
-                              edgecolor='k', linewidth=3, alpha=alpha)
+                              edgecolor='k', linewidth=3, alpha=0.5)
+
 
     # overlay drifters
     if plotdrifters:
